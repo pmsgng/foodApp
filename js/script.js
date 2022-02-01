@@ -125,7 +125,7 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 
     document.addEventListener('keydown', (e) => {
-        if(e.code === 'Escape' && modal.classList.contains('show')) {
+        if (e.code === 'Escape' && modal.classList.contains('show')) {
             closeModal();
         }
     });
@@ -133,7 +133,7 @@ window.addEventListener('DOMContentLoaded', () => {
     const modalTimerId = setTimeout(openModal, 50000);
 
     function showModalByScroll() {
-        if(window.scrollY + document.documentElement.clientHeight >= document.documentElement.scrollHeight) {
+        if (window.scrollY + document.documentElement.clientHeight >= document.documentElement.scrollHeight) {
             openModal();
             window.removeEventListener('scroll', showModalByScroll);
         }
@@ -237,35 +237,59 @@ window.addEventListener('DOMContentLoaded', () => {
             // form.append(statusMessage);
             form.insertAdjacentElement('afterend', statusMessage);
 
-            const request = new XMLHttpRequest();
-            request.open('POST','server.php');
+            // const request = new XMLHttpRequest();
+            // request.open('POST', 'server.php');   вместо объекта XHR будет fetch()
 
-            request.setRequestHeader('Content-type','application/json');
+            // request.setRequestHeader('Content-type', 'application/json');
             const formData = new FormData(form);
 
             const object = {};
-            formData.forEach(function(value, key) {
+            formData.forEach(function (value, key) {
                 object[key] = value;
             });
 
             const json = JSON.stringify(object);
-            
-            request.send(json);
 
-            request.addEventListener('load',() => {
-                if (request.status === 200) {
-                    console.log(request.response);
-                    showThanksModal(message.success);
-                    form.reset();
-                        statusMessage.remove();
-                } else {
-                    showThanksModal(message.failure);
-                }
+            fetch('server.php', {
+                method: 'POST',
+                headers: {
+                    'Content-type': 'application/json'
+                },
+                body: json,
+            })
+            .then((data) => {
+                return data.text();
+            })
+            .then(data => {
+                console.log(data);
+                showThanksModal(message.success);
+                statusMessage.remove();
+            })
+            .catch(() => {
+                showThanksModal(message.failure);
+            })
+            .finally(() => {
+                form.reset();
             });
+
+
+
+            // request.send(json);
+
+            // request.addEventListener('load', () => {
+            //     if (request.status === 200) {
+            //         console.log(request.response);
+            //         showThanksModal(message.success);
+            //         form.reset();
+            //         statusMessage.remove();
+            //     } else {
+            //         showThanksModal(message.failure);
+            //     }
+            // });
         });
     }
 
-    function showThanksModal (message) {
+    function showThanksModal(message) {
         const prevModalDialog = document.querySelector('.modal__dialog');
 
         prevModalDialog.classList.add('hide');
@@ -287,6 +311,16 @@ window.addEventListener('DOMContentLoaded', () => {
             prevModalDialog.classList.add('show');
             prevModalDialog.classList.remove('hide');
             closeModal();
-        },4000);
+        }, 4000);
     }
+
+    // fetch('https://jsonplaceholder.typicode.com/posts', {
+    //     method: 'POST',
+    //     body: JSON.stringify({name:'Alex'}),
+    //     headers: {
+    //         'Contnent-type' : 'application/json'
+    //     }
+    // })
+    //     .then(response => response.json())
+    //     .then(json => console.log(json));
 });
